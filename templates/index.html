@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StegoAI — Image Steganography System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-icon">🔐</span>
+            <div>
+                <h1>StegoAI</h1>
+                <p>Image Steganography System</p>
+            </div>
+        </div>
+        <div class="nav-pills">
+            <span class="pill pill-cv">Computer Vision</span>
+            <span class="pill pill-ds">Data Science</span>
+            <span class="pill pill-ml">AI/ML</span>
+            <span class="pill pill-gen">GenAI</span>
+        </div>
+    </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<main class="main-container">
+
+    <div class="page-title">
+        <h2>AI-Powered Secure Image Steganography</h2>
+        <p>Hide secret messages or files inside images using LSB technique. Analyzed with Data Science metrics and detected by a trained CNN model.</p>
+    </div>
+
+    <div class="domain-row">
+        <div class="domain-tag">👁 Computer Vision — LSB Steganography</div>
+        <div class="domain-tag">📊 Data Science — PSNR / MSE</div>
+        <div class="domain-tag">🧠 AI/ML — CNN Detection</div>
+        <div class="domain-tag">✨ GenAI — Message Transform</div>
+    </div>
+
+    <!-- Feature banner for Secret Sharing -->
+    <div class="feature-banner">
+        <div class="feature-banner-text">
+            <strong>🎯 Multi-Image Secret Sharing</strong>
+            <span>Split your message across 3 images — need ALL 3 to reconstruct</span>
+        </div>
+        <a href="/secret_sharing" class="btn btn-outline btn-sm">Try it →</a>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-nav">
+        <button class="tab-btn active" id="btn-embed"   onclick="switchTab('embed')">🔒 Embed</button>
+        <button class="tab-btn"        id="btn-extract" onclick="switchTab('extract')">🔓 Extract</button>
+        <button class="tab-btn"        id="btn-about"   onclick="switchTab('about')">📚 How It Works</button>
+    </div>
+
+    <!-- EMBED TAB -->
+    <div id="tab-embed" class="tab-content active">
+        <div class="card">
+            <div class="card-title">
+                🔒 Embed Secret Message or File
+                <span class="badge badge-cv">Computer Vision</span>
+            </div>
+
+            <form action="/embed" method="POST" enctype="multipart/form-data">
+
+                <!-- Step 1 -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <span class="step">1</span> Upload Cover Image
+                    </label>
+                    <div class="upload-zone" onclick="document.getElementById('coverImg').click()">
+                        <input type="file" id="coverImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden onchange="previewImg(this,'coverPreview','coverPrompt')">
+                        <div id="coverPrompt">
+                            <div class="icon">🖼️</div>
+                            <p>Click to select image</p>
+                            <small>PNG, JPG, BMP — max 16MB</small>
+                        </div>
+                        <img id="coverPreview" class="image-preview" alt="preview">
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <span class="step">2</span> What to Hide
+                    </label>
+                    <div class="type-toggle">
+                        <button type="button" class="type-btn active" id="typeText" onclick="setType('text')">💬 Text Message</button>
+                        <button type="button" class="type-btn"        id="typeFile" onclick="setType('file')">📁 File / Document</button>
+                    </div>
+                    <input type="hidden" name="embed_type" id="embedType" value="text">
+
+                    <div id="sectionText">
+                        <textarea name="message" class="message-input" rows="4"
+                            placeholder="Type your secret message here..."
+                            oninput="document.getElementById('cc').textContent=this.value.length"></textarea>
+                        <div class="char-count">Characters: <span id="cc">0</span></div>
+                    </div>
+
+                    <div id="sectionFile" style="display:none;">
+                        <div class="file-box" onclick="document.getElementById('embedFile').click()">
+                            <input type="file" id="embedFile" name="embed_file" hidden
+                                accept=".txt,.pdf,.doc,.docx,.xlsx,.csv"
+                                onchange="document.getElementById('fileName').textContent='Selected: '+this.files[0].name; document.getElementById('fileName').style.display='block'">
+                            <div>📁 Click to select file</div>
+                            <small style="color:#94a3b8; font-size:11px;">TXT, PDF, DOC, DOCX, XLSX, CSV</small>
+                        </div>
+                        <div id="fileName" class="file-selected" style="display:none;"></div>
+                        <p class="form-hint">⚠️ File size must fit in image capacity. Use larger images for larger files.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="form-group" id="genaiGroup">
+                    <label class="form-label">
+                        <span class="step">3</span> Generative AI Settings
+                        <span class="badge badge-gen" style="margin-left:6px;">GenAI</span>
+                    </label>
+                    <div class="genai-box">
+                        <div class="toggle-row">
+                            <input type="checkbox" name="use_genai" value="on" checked id="useGenai">
+                            <label for="useGenai" style="font-size:13px; font-weight:500;">Enable AI message transformation</label>
+                        </div>
+                        <div class="mode-row">
+                            <label><input type="radio" name="genai_mode" value="standard" checked> Standard</label>
+                            <label><input type="radio" name="genai_mode" value="military"> Military</label>
+                            <label><input type="radio" name="genai_mode" value="medical"> Medical</label>
+                            <label><input type="radio" name="genai_mode" value="financial"> Financial</label>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="previewAI()">✨ Preview AI Message</button>
+                        </div>
+                        <div id="aiPreview" class="ai-preview hidden"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">🔒 Embed & Analyze</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EXTRACT TAB -->
+    <div id="tab-extract" class="tab-content">
+        <div class="card">
+            <div class="card-title">🔓 Extract Hidden Message or File</div>
+            <form action="/extract" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">
+                        <span class="step">1</span> Upload Stego Image
+                    </label>
+                    <div class="upload-zone" onclick="document.getElementById('stegoImg').click()">
+                        <input type="file" id="stegoImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden onchange="previewImg(this,'stegoPreview','stegoPrompt')">
+                        <div id="stegoPrompt">
+                            <div class="icon">🔍</div>
+                            <p>Upload the stego image (PNG file you downloaded)</p>
+                            <small>Use the exact PNG file downloaded after embedding</small>
+                        </div>
+                        <img id="stegoPreview" class="image-preview" alt="preview">
+                    </div>
+                    <p class="form-hint">The system auto-detects whether text or file was hidden.</p>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">🔓 Extract Now</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS TAB -->
+    <div id="tab-about" class="tab-content">
+        <div class="card">
+            <div class="card-title">📚 How This System Works</div>
+            <div class="steps">
+                <div class="step-item">
+                    <div class="step-icon cv">👁</div>
+                    <div class="step-body">
+                        <strong>Computer Vision — LSB Steganography</strong>
+                        <p>Every pixel has R, G, B values (0–255). We replace the last bit (Least Significant Bit) of each channel with a secret message bit. Change is only ±1 — invisible to human eye.</p>
+                        <code>Before: R=11001000 | After: R=11001001 (change = 1)</code>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon gen">✨</div>
+                    <div class="step-body">
+                        <strong>Generative AI — Message Transformation</strong>
+                        <p>Plain text is transformed into a structured secure classified message with timestamps, protocol headers and cipher hints before embedding.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon ds">📊</div>
+                    <div class="step-body">
+                        <strong>Data Science — Image Quality Metrics</strong>
+                        <p>MSE measures average pixel difference. PSNR measures quality in decibels. PSNR above 40 dB means the stego image is visually identical to original.</p>
+                        <code>PSNR = 10 × log10(255² / MSE)</code>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon ml">🧠</div>
+                    <div class="step-body">
+                        <strong>AI/ML — CNN Stego Detection</strong>
+                        <p>A Convolutional Neural Network trained on cover vs stego images detects hidden content by learning subtle statistical patterns that LSB modification creates.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon cv">📁</div>
+                    <div class="step-body">
+                        <strong>File Embedding — Extended Feature</strong>
+                        <p>Any file (PDF, DOCX, TXT) is converted to Base64 string, then embedded using LSB. On extraction, it is decoded back to original file for download.</p>
+                        <code>File → Base64 String → LSB Embed → Stego Image</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="footer">
+    AI-Powered Secure Image Steganography &nbsp;|&nbsp; Wipro Mini Project &nbsp;|&nbsp;
+    Computer Vision · Data Science · AI/ML · Generative AI
+</footer>
+
+<script>
+function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('btn-' + name).classList.add('active');
+}
+
+function previewImg(input, previewId, promptId) {
+    if (input.files && input.files[0]) {
+        var r = new FileReader();
+        r.onload = function(e) {
+            var prev = document.getElementById(previewId);
+            prev.src = e.target.result;
+            prev.style.display = 'block';
+            document.getElementById(promptId).style.display = 'none';
+        };
+        r.readAsDataURL(input.files[0]);
+    }
+}
+
+function setType(type) {
+    document.getElementById('embedType').value = type;
+    document.getElementById('sectionText').style.display = type === 'text' ? 'block' : 'none';
+    document.getElementById('sectionFile').style.display = type === 'file' ? 'block' : 'none';
+    document.getElementById('genaiGroup').style.display  = type === 'text' ? 'block' : 'none';
+    document.getElementById('typeText').classList.toggle('active', type === 'text');
+    document.getElementById('typeFile').classList.toggle('active', type === 'file');
+}
+
+async function previewAI() {
+    var msg = document.querySelector('textarea[name="message"]').value.trim();
+    var preview = document.getElementById('aiPreview');
+    if (!msg) { alert('Please enter a message first.'); return; }
+    var mode = document.querySelector('input[name="genai_mode"]:checked').value;
+    preview.classList.remove('hidden');
+    preview.textContent = 'Generating...';
+    try {
+        var res  = await fetch('/generate_message', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: msg, mode: mode}) });
+        var data = await res.json();
+        preview.textContent = data.error ? 'Error: ' + data.error : data.ai_message;
+    } catch(e) { preview.textContent = 'Error: ' + e.message; }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Datasets & results
+dataset/
+static/results/
+
+# Large data files
+*.csv
+*.pdf
+
+# Model files
+*.h5
+*.pt
+*.ckpt
+
+# Environment
+.env

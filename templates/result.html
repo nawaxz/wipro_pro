@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — StegoAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">
+            <span class="logo-icon">🔐</span>
+            <div><h1>StegoAI</h1><p>Image Steganography System</p></div>
+        </div>
+        <a href="/" class="btn btn-outline btn-sm">← Back to Home</a>
+    </div>
+</header>
+
+<main class="main-container">
+
+{% if mode == 'embed' %}
+
+    <div class="result-banner">
+        <div>
+            <h2>✅ Embedding Successful</h2>
+            <p>Your {% if embed_type == 'file' %}file{% else %}message{% endif %} has been hidden inside the image using LSB steganography.</p>
+        </div>
+    </div>
+
+    <!-- Image Comparison -->
+    <div class="card">
+        <div class="card-title">🖼️ Image Comparison <span class="badge badge-cv">Computer Vision</span></div>
+        <div class="image-grid">
+            <div class="img-panel">
+                <div class="img-label">Original (Cover) Image</div>
+                <img src="{{ url_for('static', filename=original_image) }}" alt="Original">
+            </div>
+            <div class="img-panel">
+                <div class="img-label">Stego Image (hidden {% if embed_type == 'file' %}file{% else %}message{% endif %} inside)</div>
+                <img src="{{ url_for('static', filename=stego_image) }}" alt="Stego">
+                <div style="margin-top:8px;">
+                    <a href="{{ url_for('static', filename=stego_image) }}" download class="btn btn-outline btn-sm">⬇️ Download Stego Image</a>
+                </div>
+            </div>
+        </div>
+        {% if comparison_image %}
+        <div style="margin-top:14px;">
+            <div class="img-label">Pixel Difference Map (amplified ×50 — shows where bits changed)</div>
+            <img src="{{ url_for('static', filename=comparison_image) }}" style="width:100%; border-radius:6px; border:1px solid #e2e8f0;" alt="diff">
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Metrics -->
+    <div class="card">
+        <div class="card-title">📊 Image Quality Metrics <span class="badge badge-ds">Data Science</span></div>
+        <div class="metrics-row">
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.mse }}</div>
+                <div class="metric-name">MSE</div>
+                <div class="metric-desc">Mean Squared Error<br>Target: &lt; 1.0</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-val">{{ metrics.psnr }} dB</div>
+                <div class="metric-name">PSNR</div>
+                <div class="metric-desc">Signal-to-Noise Ratio<br>Target: &gt; 40 dB</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-val" style="font-size:14px; color:#16a34a;">{{ metrics.quality_rating }}</div>
+                <div class="metric-name">Quality</div>
+                <div class="metric-desc">{{ message_length }} chars embedded</div>
+            </div>
+        </div>
+        <div class="formula-box">
+            <strong>Formulae used:</strong>
+            <code>MSE  = (1/N) × Σ(Original − Stego)²</code>
+            <code>PSNR = 10 × log₁₀(255² / MSE)</code>
+        </div>
+    </div>
+
+    <!-- File embedded info -->
+    {% if embed_type == 'file' %}
+    <div class="card">
+        <div class="card-title">📁 File Embedding Details</div>
+        <p style="font-size:13px;"><strong>File embedded:</strong> {{ embed_file_name }}</p>
+        <p style="font-size:12px; color:#64748b; margin-top:6px;">The file was converted to Base64 and embedded using LSB. Use the Extract tab to recover it.</p>
+    </div>
+    {% elif use_genai %}
+    <!-- GenAI message -->
+    <div class="card">
+        <div class="card-title">✨ GenAI Message Transformation <span class="badge badge-gen">GenAI</span></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+            <div>
+                <div class="img-label">Original Message</div>
+                <div class="msg-box">{{ original_message }}</div>
+            </div>
+            <div>
+                <div class="img-label">AI Secure Message (what was embedded)</div>
+                <div class="msg-box"><pre style="margin:0; font-size:11px; white-space:pre-wrap;">{{ ai_message }}</pre></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CNN Detection -->
+    <div class="card">
+        <div class="card-title">🧠 CNN Stego Detection <span class="badge badge-ml">AI/ML</span></div>
+        <div class="detection-box {{ 'stego' if detection.label == 'Stego' else 'cover' }}">
+            <div class="detection-label">{{ detection.label }}</div>
+            <div class="detection-verdict">{{ detection.verdict }}</div>
+            {% if detection.confidence_pct != 'N/A' %}
+            <div class="detection-conf">Confidence: {{ detection.confidence_pct }} &nbsp;|&nbsp; Risk: {{ detection.risk_level }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+{% elif mode == 'extract' %}
+
+    <div class="result-banner">
+        <div>
+            <h2>🔓 Extraction Successful</h2>
+            <p>Hidden content has been recovered from the stego image.</p>
+        </div>
+    </div>
+
+    <!-- Extracted content -->
+    <div class="card">
+        <div class="card-title">📋 Extracted Content <span class="badge badge-cv">Computer Vision</span></div>
+        {% if is_file_payload %}
+        <div style="text-align:center; padding:20px;">
+            <div style="font-size:40px; margin-bottom:10px;">📁</div>
+            <p style="font-weight:700; margin-bottom:6px;">File recovered: {{ extracted_file_name }}</p>
+            <a href="{{ url_for('download_extracted', filename=extracted_file_name) }}" class="btn btn-success">⬇️ Download {{ extracted_file_name }}</a>
+        </div>
+        {% else %}
+        <div class="decoded-box">{{ decoded_message }}</div>
+        <div style="margin-top:10px;">
+            <button onclick="navigator.clipboard.writeText(document.querySelector('.decoded-box').textContent).then(()=>alert('Copied!'))" class="btn btn-outline btn-sm">📋 Copy Text</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- CNN Detection -->
+    <div class="card">
+        <div class="card-title">🧠 CNN Stego Detection <span class="badge badge-ml">AI/ML</span></div>
+        <div class="detection-box {{ 'stego' if detection.label == 'Stego' else 'cover' }}">
+            <div class="detection-label">{{ detection.label }}</div>
+            <div class="detection-verdict">{{ detection.verdict }}</div>
+            {% if detection.confidence_pct != 'N/A' %}
+            <div class="detection-conf">Confidence: {{ detection.confidence_pct }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endif %}
+
+    <div class="action-row">
+        <a href="/" class="btn btn-primary">🏠 Back to Home</a>
+        <a href="/secret_sharing" class="btn btn-outline">🎯 Secret Sharing</a>
+    </div>
+
+</main>
+
+<footer class="footer">
+    AI-Powered Secure Image Steganography &nbsp;|&nbsp; Wipro Mini Project
+</footer>
+
+</body>
+</html>
