@@ -1,187 +1,144 @@
-"""
-utils/genai.py — Generative AI Secret Message Module
-======================================================
-Transforms plain user text into secure, AI-formatted confidential messages
-before embedding into images via steganography.
-
-GENERATIVE AI APPROACH:
-    This module implements a rule-based + template-driven message generator
-    that mimics what a large language model (LLM) would produce.
-    
-    For production deployment with an actual LLM:
-        - Swap the `generate_with_llm()` stub with an API call to 
-          OpenAI GPT-4, Google Gemini, or Anthropic Claude.
-        - The pipeline remains identical regardless of backend.
-
-SECURITY TRANSFORMATIONS APPLIED:
-    1. Timestamp injection       → adds UTC time for non-repudiation
-    2. Priority classification   → labels message sensitivity level
-    3. Cipher hint encoding      → Base64-encodes keywords
-    4. Protocol wrapping         → formats as secure transmission packet
-
-Author: AI Steganography System
-"""
-
-import base64
+﻿import base64
 import hashlib
 import random
 from datetime import datetime, timezone
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# TEMPLATES: Secure Message Formats
-# ──────────────────────────────────────────────────────────────────────────────
-
+DEFAULT_CAESAR_KEY = 13
+DEFAULT_XOR_KEY = [0x5A, 0x3C, 0x7F, 0x1A, 0x42]
 CLASSIFICATION_LEVELS = ["CONFIDENTIAL", "SECRET", "TOP SECRET", "RESTRICTED"]
+PROTOCOL_HEADERS = ["SECURE TRANSMISSION INITIATED", "ENCRYPTED CHANNEL ACTIVE", "CLASSIFIED COMMUNICATION", "SECURE PACKET RELAY"]
 
-PROTOCOL_HEADERS = [
-    "SECURE TRANSMISSION INITIATED",
-    "ENCRYPTED CHANNEL ACTIVE",
-    "CLASSIFIED COMMUNICATION",
-    "SECURE PACKET RELAY",
-]
-
-def _get_timestamp() -> str:
-    """Return current UTC timestamp in ISO format."""
+def _get_timestamp():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-
-def _generate_message_id(text: str) -> str:
-    """Generate a short unique ID from message content using MD5 hash."""
+def _generate_message_id(text):
     return hashlib.md5(text.encode()).hexdigest()[:8].upper()
 
+def _generate_key_fingerprint(caesar_key, xor_key):
+    raw = str(caesar_key) + ''.join(str(k) for k in xor_key)
+    return hashlib.sha256(raw.encode()).hexdigest()[:12].upper()
 
-def _encode_keywords(text: str) -> str:
-    """
-    Base64-encode the first significant word as a 'cipher hint'.
-    In real GenAI systems, this would be LLM-generated cipher text.
-    """
-    words = [w for w in text.split() if len(w) > 4]
-    if words:
-        keyword = words[0]
-        encoded = base64.b64encode(keyword.encode()).decode()
-        return f"[CIPHER-HINT: {encoded}]"
-    return "[CIPHER-HINT: NONE]"
+def caesar_encrypt(text, shift=None):
+    if shift is None: shift = DEFAULT_CAESAR_KEY
+    result = []
+    for char in text:
+        if char.isalpha():
+            base = ord('A') if char.isupper() else ord('a')
+            result.append(chr((ord(char) - base + shift) % 26 + base))
+        else:
+            result.append(char)
+    return ''.join(result)
 
+def caesar_decrypt(text, shift=None):
+    if shift is None: shift = DEFAULT_CAESAR_KEY
+    return caesar_encrypt(text, -shift)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# CORE: Generate AI-Formatted Secure Message
-# ──────────────────────────────────────────────────────────────────────────────
+def xor_encrypt(text, key=None):
+    if key is None: key = DEFAULT_XOR_KEY
+    text_bytes = text.encode('utf-8')
+    return bytes([b ^ key[i % len(key)] for i, b in enumerate(text_bytes)])
 
-def generate_secure_message(user_input: str, mode: str = "standard") -> str:
-    """
-    Transform plain user text into a structured confidential message.
+def xor_decrypt(data, key=None):
+    if key is None: key = DEFAULT_XOR_KEY
+    decrypted = bytes([b ^ key[i % len(key)] for i, b in enumerate(data)])
+    return decrypted.decode('utf-8')
 
-    Args:
-        user_input : The original message from the user
-        mode       : 'standard', 'military', 'medical', 'financial'
+def base64_encode(data):
+    return base64.b64encode(data).decode('utf-8')
 
-    Returns:
-        Formatted secure message string ready for steganographic embedding
+def base64_decode(text):
+    return base64.b64decode(text.encode('utf-8'))
 
-    Example:
-        Input:  "Meet at the warehouse at midnight"
-        Output: "=== TOP SECRET | MSG-ID: A3F9C12B | 2024-01-15T22:30:00Z ===
-                 SECURE TRANSMISSION INITIATED
-                 [CIPHER-HINT: TWVldA==]
-                 PAYLOAD: Meet at the warehouse at midnight
-                 --- END TRANSMISSION ---"
-    """
+def encrypt_message(text, caesar_key=None, xor_key=None):
+    if caesar_key is None: caesar_key = DEFAULT_CAESAR_KEY
+    if xor_key is None: xor_key = DEFAULT_XOR_KEY
+    after_caesar = caesar_encrypt(text, caesar_key)
+    after_xor = xor_encrypt(after_caesar, xor_key)
+    encrypted_b64 = base64_encode(after_xor)
+    fingerprint = _generate_key_fingerprint(caesar_key, xor_key)
+    return {
+        "encrypted": encrypted_b64,
+        "original_len": len(text),
+        "caesar_key": caesar_key,
+        "fingerprint": fingerprint,
+        "layers": "Caesar-13 -> XOR-5byte -> Base64"
+    }
+
+def decrypt_message(encrypted_b64, caesar_key=None, xor_key=None):
+    if caesar_key is None: caesar_key = DEFAULT_CAESAR_KEY
+    if xor_key is None: xor_key = DEFAULT_XOR_KEY
+    after_b64 = base64_decode(encrypted_b64)
+    after_xor = xor_decrypt(after_b64, xor_key)
+    return caesar_decrypt(after_xor, caesar_key)
+
+def generate_secure_message(user_input, mode="standard"):
     if not user_input or not user_input.strip():
         raise ValueError("Cannot generate secure message from empty input.")
-
     user_input = user_input.strip()
-
-    # Select classification and header
+    enc = encrypt_message(user_input)
     classification = random.choice(CLASSIFICATION_LEVELS)
     header = random.choice(PROTOCOL_HEADERS)
     msg_id = _generate_message_id(user_input)
     timestamp = _get_timestamp()
-    cipher_hint = _encode_keywords(user_input)
-
-    # Build message based on mode
     if mode == "military":
-        formatted = _military_format(user_input, classification, msg_id, timestamp, cipher_hint, header)
+        return _military_format(enc, msg_id, timestamp, classification)
     elif mode == "medical":
-        formatted = _medical_format(user_input, msg_id, timestamp)
+        return _medical_format(enc, msg_id, timestamp)
     elif mode == "financial":
-        formatted = _financial_format(user_input, msg_id, timestamp)
+        return _financial_format(enc, msg_id, timestamp)
     else:
-        formatted = _standard_format(user_input, classification, msg_id, timestamp, cipher_hint, header)
+        return _standard_format(enc, classification, msg_id, timestamp, header)
 
-    return formatted
-
-
-def _standard_format(text, classification, msg_id, timestamp, cipher_hint, header) -> str:
+def _standard_format(enc, classification, msg_id, timestamp, header):
     return (
-        f"=== {classification} | MSG-ID: {msg_id} | {timestamp} ===\n"
-        f"{header}\n"
-        f"{cipher_hint}\n"
-        f"PAYLOAD: {text}\n"
-        f"--- END SECURE TRANSMISSION ---"
+        "=== " + classification + " | MSG-ID: " + msg_id + " | " + timestamp + " ===\n" +
+        header + "\n" +
+        "ENCRYPTION: " + enc["layers"] + "\n" +
+        "KEY-FINGERPRINT: " + enc["fingerprint"] + "\n" +
+        "ENCRYPTED-PAYLOAD:\n" +
+        enc["encrypted"] + "\n" +
+        "ORIGINAL-LENGTH: " + str(enc["original_len"]) + " chars\n" +
+        "--- END SECURE TRANSMISSION ---"
     )
 
-
-def _military_format(text, classification, msg_id, timestamp, cipher_hint, header) -> str:
+def _military_format(enc, msg_id, timestamp, classification):
     return (
-        f"FROM: COMMAND CENTER\n"
-        f"TO: FIELD OPERATIVE\n"
-        f"CLASSIFICATION: {classification}\n"
-        f"MSG-REF: ALFA-{msg_id}\n"
-        f"DTG: {timestamp}\n"
-        f"{cipher_hint}\n"
-        f"MESSAGE: {text}\n"
-        f"AUTHENTICATION: VERIFIED\n"
-        f"END OF MESSAGE"
+        "FROM: COMMAND CENTER\n" +
+        "TO: FIELD OPERATIVE\n" +
+        "CLASSIFICATION: " + classification + "\n" +
+        "MSG-REF: ALFA-" + msg_id + "\n" +
+        "DTG: " + timestamp + "\n" +
+        "ENCRYPTION: " + enc["layers"] + "\n" +
+        "KEY-FINGERPRINT: " + enc["fingerprint"] + "\n" +
+        "ENCRYPTED-MESSAGE:\n" +
+        enc["encrypted"] + "\n" +
+        "AUTHENTICATION: VERIFIED\n" +
+        "END OF MESSAGE"
     )
 
-
-def _medical_format(text, msg_id, timestamp) -> str:
+def _medical_format(enc, msg_id, timestamp):
     return (
-        f"HIPAA-PROTECTED MEDICAL RECORD\n"
-        f"Record-ID: MED-{msg_id}\n"
-        f"Timestamp: {timestamp}\n"
-        f"CONFIDENTIAL PATIENT DATA:\n"
-        f"{text}\n"
-        f"Authorized Personnel Only — Unauthorized disclosure is prohibited."
+        "HIPAA-PROTECTED MEDICAL RECORD\n" +
+        "Record-ID: MED-" + msg_id + "\n" +
+        "Timestamp: " + timestamp + "\n" +
+        "ENCRYPTION: " + enc["layers"] + "\n" +
+        "KEY-FINGERPRINT: " + enc["fingerprint"] + "\n" +
+        "ENCRYPTED-DATA:\n" +
+        enc["encrypted"] + "\n" +
+        "Authorized Personnel Only"
     )
 
-
-def _financial_format(text, msg_id, timestamp) -> str:
+def _financial_format(enc, msg_id, timestamp):
     return (
-        f"SECURE FINANCIAL COMMUNICATION\n"
-        f"Transaction-Ref: FIN-{msg_id}\n"
-        f"Issued: {timestamp}\n"
-        f"CONFIDENTIAL ADVISORY:\n"
-        f"{text}\n"
-        f"This communication is for authorized recipients only."
+        "SECURE FINANCIAL COMMUNICATION\n" +
+        "Transaction-Ref: FIN-" + msg_id + "\n" +
+        "Issued: " + timestamp + "\n" +
+        "ENCRYPTION: " + enc["layers"] + "\n" +
+        "KEY-FINGERPRINT: " + enc["fingerprint"] + "\n" +
+        "ENCRYPTED-PAYLOAD:\n" +
+        enc["encrypted"] + "\n" +
+        "Authorized recipients only."
     )
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# STUB: Actual LLM Integration (Plug in your API key here)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def generate_with_llm(user_input: str, api_key: str = None) -> str:
-    """
-    Stub for real LLM-based message generation.
-
-    To enable: install 'anthropic' or 'openai' package and add your API key.
-
-    Example with Anthropic Claude:
-        import anthropic
-        client = anthropic.Anthropic(api_key=api_key)
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=256,
-            messages=[{
-                "role": "user",
-                "content": f"Reformat this as a secure classified message: {user_input}"
-            }]
-        )
-        return message.content[0].text
-
-    For now, falls back to rule-based generation.
-    """
-    # Fallback to rule-based if no API key
+def generate_with_llm(user_input, api_key=None):
     return generate_secure_message(user_input, mode="standard")

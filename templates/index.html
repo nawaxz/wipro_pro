@@ -3,29 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StegoAI — Image Steganography System</title>
+    <title>StegoAI — Secure Image Steganography</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-    </style>
 </head>
 <body>
 
+<!-- NAV -->
 <header class="header">
     <div class="header-inner">
-        <div class="logo">
-            <span class="logo-icon">🔐</span>
-            <div>
+        <a href="/" class="logo">
+            <div class="logo-icon">🔐</div>
+            <div class="logo-text">
                 <h1>StegoAI</h1>
                 <p>Image Steganography System</p>
             </div>
-        </div>
-        <div class="nav-pills">
-            <span class="pill pill-cv">Computer Vision</span>
-            <span class="pill pill-ds">Data Science</span>
-            <span class="pill pill-ml">AI/ML</span>
-            <span class="pill pill-gen">GenAI</span>
+        </a>
+        <div class="nav-right">
+            <a href="/secret_sharing" class="nav-link">Secret Sharing</a>
+            <a href="#how-it-works" class="btn btn-outline btn-sm">How It Works</a>
         </div>
     </div>
 </header>
@@ -40,70 +35,85 @@
 {% endif %}
 {% endwith %}
 
-<main class="main-container">
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-badge">✨ Wipro Mini Project — 4 Domains Integrated</div>
+    <h2>Hide Secrets Inside <span>Ordinary Images</span></h2>
+    <p>AI-powered steganography using Computer Vision, Data Science, Machine Learning and Generative AI to securely embed and detect hidden messages.</p>
+</section>
 
-    <div class="page-title">
-        <h2>AI-Powered Secure Image Steganography</h2>
-        <p>Hide secret messages or files inside images using LSB technique. Analyzed with Data Science metrics and detected by a trained CNN model.</p>
+<!-- FEATURE CARDS -->
+<section class="features">
+    <div class="feature-card">
+        <div class="feature-icon fi-blue">👁</div>
+        <h3>Computer Vision</h3>
+        <p>LSB pixel manipulation hides messages invisibly. Change is only ±1 per pixel — undetectable to human eyes.</p>
     </div>
-
-    <div class="domain-row">
-        <div class="domain-tag">👁 Computer Vision — LSB Steganography</div>
-        <div class="domain-tag">📊 Data Science — PSNR / MSE</div>
-        <div class="domain-tag">🧠 AI/ML — CNN Detection</div>
-        <div class="domain-tag">✨ GenAI — Message Transform</div>
+    <div class="feature-card">
+        <div class="feature-icon fi-purple">📊</div>
+        <h3>Data Science</h3>
+        <p>MSE and PSNR metrics mathematically prove image quality. Our PSNR exceeds 70 dB — far above 40 dB threshold.</p>
     </div>
+    <div class="feature-card">
+        <div class="feature-icon fi-green">🧠</div>
+        <h3>AI / ML + GenAI</h3>
+        <p>CNN trained on 8000 images detects hidden content. GenAI transforms plain text into classified secure format.</p>
+    </div>
+</section>
 
-    <!-- Feature banner for Secret Sharing -->
-    <div class="feature-banner">
-        <div class="feature-banner-text">
-            <strong>🎯 Multi-Image Secret Sharing</strong>
-            <span>Split your message across 3 images — need ALL 3 to reconstruct</span>
+<!-- SECRET SHARING BANNER -->
+<div class="sharing-banner">
+    <div class="sharing-inner">
+        <div class="sharing-text">
+            <h3>🎯 Multi-Image XOR Secret Sharing</h3>
+            <p>Split your message across 3 images — need ALL 3 to reconstruct. Information-theoretically secure.</p>
         </div>
-        <a href="/secret_sharing" class="btn btn-outline btn-sm">Try it →</a>
+        <a href="/secret_sharing" class="btn-white">Try it →</a>
     </div>
+</div>
 
-    <!-- Tabs -->
+<!-- MAIN TOOL -->
+<div class="tool-section">
+
     <div class="tab-nav">
         <button class="tab-btn active" id="btn-embed"   onclick="switchTab('embed')">🔒 Embed</button>
         <button class="tab-btn"        id="btn-extract" onclick="switchTab('extract')">🔓 Extract</button>
-        <button class="tab-btn"        id="btn-about"   onclick="switchTab('about')">📚 How It Works</button>
+        <button class="tab-btn"        id="btn-about"   onclick="switchTab('about')" id="how-it-works">📚 How It Works</button>
     </div>
 
     <!-- EMBED TAB -->
     <div id="tab-embed" class="tab-content active">
         <div class="card">
-            <div class="card-title">
-                🔒 Embed Secret Message or File
-                <span class="badge badge-cv">Computer Vision</span>
+            <div class="card-header">
+                <h3>🔒 Embed Secret Message or File</h3>
+                <p>Hide text or files inside an image using LSB steganography. Image quality is preserved with PSNR above 70 dB.</p>
             </div>
 
             <form action="/embed" method="POST" enctype="multipart/form-data">
 
-                <!-- Step 1 -->
                 <div class="form-group">
                     <label class="form-label">
-                        <span class="step">1</span> Upload Cover Image
+                        <span class="step-num">1</span> Upload Cover Image
                     </label>
                     <div class="upload-zone" onclick="document.getElementById('coverImg').click()">
-                        <input type="file" id="coverImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden onchange="previewImg(this,'coverPreview','coverPrompt')">
+                        <input type="file" id="coverImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden
+                               onchange="previewImg(this,'coverPreview','coverPrompt')">
                         <div id="coverPrompt">
-                            <div class="icon">🖼️</div>
-                            <p>Click to select image</p>
-                            <small>PNG, JPG, BMP — max 16MB</small>
+                            <div class="upload-icon">🖼️</div>
+                            <h4>Click to select image</h4>
+                            <p>PNG, JPG, BMP — any size</p>
                         </div>
                         <img id="coverPreview" class="image-preview" alt="preview">
                     </div>
                 </div>
 
-                <!-- Step 2 -->
                 <div class="form-group">
                     <label class="form-label">
-                        <span class="step">2</span> What to Hide
+                        <span class="step-num">2</span> What to Hide
                     </label>
                     <div class="type-toggle">
                         <button type="button" class="type-btn active" id="typeText" onclick="setType('text')">💬 Text Message</button>
-                        <button type="button" class="type-btn"        id="typeFile" onclick="setType('file')">📁 File / Document</button>
+                        <button type="button" class="type-btn"        id="typeFile" onclick="setType('file')">📁 File</button>
                     </div>
                     <input type="hidden" name="embed_type" id="embedType" value="text">
 
@@ -120,23 +130,21 @@
                                 accept=".txt,.pdf,.doc,.docx,.xlsx,.csv"
                                 onchange="document.getElementById('fileName').textContent='Selected: '+this.files[0].name; document.getElementById('fileName').style.display='block'">
                             <div>📁 Click to select file</div>
-                            <small style="color:#94a3b8; font-size:11px;">TXT, PDF, DOC, DOCX, XLSX, CSV</small>
+                            <p style="font-size:11px; margin-top:4px; color:#94a3b8;">TXT, PDF, DOC, DOCX, XLSX, CSV</p>
                         </div>
                         <div id="fileName" class="file-selected" style="display:none;"></div>
-                        <p class="form-hint">⚠️ File size must fit in image capacity. Use larger images for larger files.</p>
+                        <p class="form-hint">Image auto-resizes to fit your file.</p>
                     </div>
                 </div>
 
-                <!-- Step 3 -->
                 <div class="form-group" id="genaiGroup">
                     <label class="form-label">
-                        <span class="step">3</span> Generative AI Settings
-                        <span class="badge badge-gen" style="margin-left:6px;">GenAI</span>
+                        <span class="step-num">3</span> Generative AI Settings
                     </label>
                     <div class="genai-box">
                         <div class="toggle-row">
                             <input type="checkbox" name="use_genai" value="on" checked id="useGenai">
-                            <label for="useGenai" style="font-size:13px; font-weight:500;">Enable AI message transformation</label>
+                            <label for="useGenai">Enable AI message transformation</label>
                         </div>
                         <div class="mode-row">
                             <label><input type="radio" name="genai_mode" value="standard" checked> Standard</label>
@@ -144,7 +152,7 @@
                             <label><input type="radio" name="genai_mode" value="medical"> Medical</label>
                             <label><input type="radio" name="genai_mode" value="financial"> Financial</label>
                         </div>
-                        <div style="margin-top:10px;">
+                        <div style="margin-top:12px;">
                             <button type="button" class="btn btn-outline btn-sm" onclick="previewAI()">✨ Preview AI Message</button>
                         </div>
                         <div id="aiPreview" class="ai-preview hidden"></div>
@@ -159,22 +167,25 @@
     <!-- EXTRACT TAB -->
     <div id="tab-extract" class="tab-content">
         <div class="card">
-            <div class="card-title">🔓 Extract Hidden Message or File</div>
+            <div class="card-header">
+                <h3>🔓 Extract Hidden Message or File</h3>
+                <p>Upload any stego image to extract its hidden content. The system auto-detects text or file payloads.</p>
+            </div>
             <form action="/extract" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label class="form-label">
-                        <span class="step">1</span> Upload Stego Image
+                        <span class="step-num">1</span> Upload Stego Image
                     </label>
                     <div class="upload-zone" onclick="document.getElementById('stegoImg').click()">
-                        <input type="file" id="stegoImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden onchange="previewImg(this,'stegoPreview','stegoPrompt')">
+                        <input type="file" id="stegoImg" name="image" accept=".png,.jpg,.jpeg,.bmp" hidden
+                               onchange="previewImg(this,'stegoPreview','stegoPrompt')">
                         <div id="stegoPrompt">
-                            <div class="icon">🔍</div>
-                            <p>Upload the stego image (PNG file you downloaded)</p>
-                            <small>Use the exact PNG file downloaded after embedding</small>
+                            <div class="upload-icon">🔍</div>
+                            <h4>Upload stego image</h4>
+                            <p>Use the exact PNG file downloaded after embedding</p>
                         </div>
                         <img id="stegoPreview" class="image-preview" alt="preview">
                     </div>
-                    <p class="form-hint">The system auto-detects whether text or file was hidden.</p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-full">🔓 Extract Now</button>
             </form>
@@ -184,13 +195,16 @@
     <!-- HOW IT WORKS TAB -->
     <div id="tab-about" class="tab-content">
         <div class="card">
-            <div class="card-title">📚 How This System Works</div>
+            <div class="card-header">
+                <h3>📚 How This System Works</h3>
+                <p>Four domains working together in one integrated pipeline.</p>
+            </div>
             <div class="steps">
                 <div class="step-item">
                     <div class="step-icon cv">👁</div>
                     <div class="step-body">
                         <strong>Computer Vision — LSB Steganography</strong>
-                        <p>Every pixel has R, G, B values (0–255). We replace the last bit (Least Significant Bit) of each channel with a secret message bit. Change is only ±1 — invisible to human eye.</p>
+                        <p>Every pixel has R, G, B values (0–255). We replace the Least Significant Bit of each channel with a secret message bit. Change is only ±1 — completely invisible to human eye.</p>
                         <code>Before: R=11001000 | After: R=11001001 (change = 1)</code>
                     </div>
                 </div>
@@ -198,14 +212,14 @@
                     <div class="step-icon gen">✨</div>
                     <div class="step-body">
                         <strong>Generative AI — Message Transformation</strong>
-                        <p>Plain text is transformed into a structured secure classified message with timestamps, protocol headers and cipher hints before embedding.</p>
+                        <p>Plain text is transformed into a structured secure classified message with timestamps, protocol headers and cipher hints using the Anthropic Claude API before embedding.</p>
                     </div>
                 </div>
                 <div class="step-item">
                     <div class="step-icon ds">📊</div>
                     <div class="step-body">
                         <strong>Data Science — Image Quality Metrics</strong>
-                        <p>MSE measures average pixel difference. PSNR measures quality in decibels. PSNR above 40 dB means the stego image is visually identical to original.</p>
+                        <p>MSE measures average pixel difference. PSNR measures quality in decibels. PSNR above 40 dB means visually identical. Our system achieves ~70 dB.</p>
                         <code>PSNR = 10 × log10(255² / MSE)</code>
                     </div>
                 </div>
@@ -213,26 +227,21 @@
                     <div class="step-icon ml">🧠</div>
                     <div class="step-body">
                         <strong>AI/ML — CNN Stego Detection</strong>
-                        <p>A Convolutional Neural Network trained on cover vs stego images detects hidden content by learning subtle statistical patterns that LSB modification creates.</p>
-                    </div>
-                </div>
-                <div class="step-item">
-                    <div class="step-icon cv">📁</div>
-                    <div class="step-body">
-                        <strong>File Embedding — Extended Feature</strong>
-                        <p>Any file (PDF, DOCX, TXT) is converted to Base64 string, then embedded using LSB. On extraction, it is decoded back to original file for download.</p>
-                        <code>File → Base64 String → LSB Embed → Stego Image</code>
+                        <p>A CNN with 684,833 parameters trained on 8000 images detects hidden content with 84.4% confidence by learning subtle LSB noise patterns invisible to humans.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-</main>
+</div>
 
+<!-- FOOTER -->
 <footer class="footer">
-    AI-Powered Secure Image Steganography &nbsp;|&nbsp; Wipro Mini Project &nbsp;|&nbsp;
-    Computer Vision · Data Science · AI/ML · Generative AI
+    <div class="footer-inner">
+        <div class="footer-left">🔐 StegoAI — AI-Powered Image Steganography</div>
+        <div class="footer-right">Wipro Mini Project &nbsp;·&nbsp; Computer Vision &nbsp;·&nbsp; Data Science &nbsp;·&nbsp; AI/ML &nbsp;·&nbsp; GenAI</div>
+    </div>
 </footer>
 
 <script>
@@ -271,9 +280,13 @@ async function previewAI() {
     if (!msg) { alert('Please enter a message first.'); return; }
     var mode = document.querySelector('input[name="genai_mode"]:checked').value;
     preview.classList.remove('hidden');
-    preview.textContent = 'Generating...';
+    preview.textContent = 'Generating AI message...';
     try {
-        var res  = await fetch('/generate_message', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: msg, mode: mode}) });
+        var res  = await fetch('/generate_message', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: msg, mode: mode})
+        });
         var data = await res.json();
         preview.textContent = data.error ? 'Error: ' + data.error : data.ai_message;
     } catch(e) { preview.textContent = 'Error: ' + e.message; }

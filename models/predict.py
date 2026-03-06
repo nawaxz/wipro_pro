@@ -31,6 +31,8 @@ from config import MODEL_PATH, IMG_SIZE
 
 # Lazy-load the model (singleton pattern — load once, reuse)
 _model = None
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 def _load_model():
