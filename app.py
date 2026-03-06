@@ -46,12 +46,17 @@ def generate_unique_filename(original_filename, prefix=""):
     return f"{prefix}{unique_id}.png"
 
 
+# Load CNN model ONCE at startup
+_predict_fn = None
+try:
+    from models.predict import predict_image
+    _predict_fn = predict_image
+    print("CNN model loaded successfully!")
+except Exception as e:
+    print("CNN model not loaded:", e)
+
 def load_cnn_model():
-    try:
-        from models.predict import predict_image
-        return predict_image
-    except FileNotFoundError:
-        return None
+    return _predict_fn
 
 
 # ── Main Routes ───────────────────────────────────────────────────────────────
@@ -178,10 +183,19 @@ def extract():
         is_file_payload = decoded_message.startswith("FILE:")
         extracted_file_path = None
         extracted_file_name = None
+        decrypted = None
 
         if is_file_payload:
             extracted_file_path = base64_string_to_file(decoded_message, RESULT_FOLDER)
             extracted_file_name = os.path.basename(extracted_file_path)
+        else:
+            # Auto-decrypt GenAI packet if present
+            try:
+                from utils.genai import decrypt_packet, PACKET_START
+                if PACKET_START in decoded_message:
+                    decrypted = decrypt_packet(decoded_message)
+            except Exception:
+                decrypted = None
 
         predict_fn = load_cnn_model()
         if predict_fn:
@@ -201,6 +215,7 @@ def extract():
             "is_file_payload": is_file_payload,
             "extracted_file_name": extracted_file_name,
             "detection": detection,
+            "decrypted": decrypted,
         }
         return render_template('result.html', **context)
 

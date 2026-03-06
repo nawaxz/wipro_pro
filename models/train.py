@@ -40,7 +40,7 @@ def create_data_generators():
         rescale=1.0 / 255.0,
         horizontal_flip=True,
         rotation_range=15,
-        brightness_range=[0.8, 1.2],
+        brightness_range=[0.8, 1.2], 
         zoom_range=0.1,
         fill_mode='nearest'
     )
@@ -66,10 +66,10 @@ def create_callbacks(model_path):
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
     log_path = model_path.replace('.h5', '_training_log.csv')
     return [
-        ModelCheckpoint(filepath=model_path, monitor='val_accuracy', save_best_only=True, verbose=1),
-        EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True, verbose=1),
-        ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr=1e-7, verbose=1),
-        CSVLogger(log_path, append=False)
+        ModelCheckpoint(filepath=model_path, monitor='val_accuracy', save_best_only=True, verbose=1), #If accuracy improves → save it.
+        EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True, verbose=1),#If the AI stops improving, stop training
+        ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=4, min_lr=1e-7, verbose=1),#If learning gets stuck → slow down learning speed.
+        CSVLogger(log_path, append=False)#Record all training data in a file.
     ]
 
 

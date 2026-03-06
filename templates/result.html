@@ -135,12 +135,60 @@
             <a href="{{ url_for('download_extracted', filename=extracted_file_name) }}" class="btn btn-success">⬇️ Download {{ extracted_file_name }}</a>
         </div>
         {% else %}
+        <div class="img-label" style="margin-bottom:8px;">Raw Extracted Packet</div>
         <div class="decoded-box">{{ decoded_message }}</div>
         <div style="margin-top:10px;">
-            <button onclick="navigator.clipboard.writeText(document.querySelector('.decoded-box').textContent).then(()=>alert('Copied!'))" class="btn btn-outline btn-sm">📋 Copy Text</button>
+            <button onclick="navigator.clipboard.writeText(document.querySelector('.decoded-box').textContent).then(()=>alert('Copied!'))" class="btn btn-outline btn-sm">📋 Copy Raw</button>
         </div>
         {% endif %}
     </div>
+
+    <!-- GenAI Decryption -->
+    {% if decrypted and not is_file_payload %}
+    <div class="card" style="border: 2px solid #22C55E;">
+        <div class="card-title">✨ GenAI Decrypted Message <span class="badge badge-gen">GenAI</span></div>
+
+        {% if decrypted.verified %}
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:14px; margin-bottom:16px; display:flex; align-items:center; gap:10px;">
+            <div style="font-size:24px;">✅</div>
+            <div>
+                <div style="font-size:13px; font-weight:700; color:#166534;">Hash Verified — Message is Authentic</div>
+                <div style="font-size:11px; color:#4ade80; margin-top:2px;">SHA256 hash matches — message was not tampered</div>
+            </div>
+        </div>
+        {% else %}
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:14px; margin-bottom:16px;">
+            <div style="font-size:13px; font-weight:700; color:#dc2626;">⚠️ Hash Mismatch — Message may be tampered!</div>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom:14px;">
+            <div class="img-label">Original Message</div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; font-size:18px; font-weight:700; color:#0f172a; letter-spacing:0.3px;">
+                {{ decrypted.original_message }}
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
+                <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:6px;">SHA256 Stored</div>
+                <div style="font-size:10px; font-family:monospace; color:#2563eb; word-break:break-all;">{{ decrypted.sha256_stored }}</div>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
+                <div style="font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; margin-bottom:6px;">SHA256 Computed</div>
+                <div style="font-size:10px; font-family:monospace; color:#22c55e; word-break:break-all;">{{ decrypted.sha256_computed }}</div>
+            </div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px; font-size:12px; color:#64748b;">
+            <strong>Status:</strong> {{ decrypted.status }}
+        </div>
+
+        <div style="margin-top:12px;">
+            <button onclick="navigator.clipboard.writeText('{{ decrypted.original_message }}').then(()=>alert('Original message copied!'))" class="btn btn-primary btn-sm">📋 Copy Original Message</button>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- CNN Detection -->
     <div class="card">
@@ -164,7 +212,7 @@
 </main>
 
 <footer class="footer">
-    AI-Powered Secure Image Steganography &nbsp;|&nbsp; Wipro Mini Project
+    AI-Powered Secure Image Steganography &nbsp;|&nbsp; Final Year Project
 </footer>
 
 </body>

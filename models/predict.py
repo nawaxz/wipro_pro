@@ -70,23 +70,7 @@ def preprocess_image(image_path: str) -> np.ndarray:
 
 
 def predict_image(image_path: str) -> dict:
-    """
-    Predict whether an image is a cover (normal) or stego image.
-
-    Args:
-        image_path: Path to the image file
-
-    Returns:
-        Dictionary with prediction results:
-        {
-            "label":       "Cover" or "Stego",
-            "confidence":  float (0.0 to 1.0),
-            "probability": float (raw sigmoid output),
-            "class_id":    0 or 1,
-            "verdict":     human-readable verdict string,
-            "risk_level":  "Low" / "Medium" / "High"
-        }
-    """
+   
     model = _load_model()
     img_array = preprocess_image(image_path)
 
