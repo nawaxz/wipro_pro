@@ -1,23 +1,6 @@
 """
 models/predict.py — Stego Detection Inference Module
 ======================================================
-Loads the trained CNN model and predicts whether a given image
-contains hidden steganographic content.
-
-USAGE:
-    from models.predict import predict_image
-
-    result = predict_image("path/to/image.png")
-    # Returns:
-    # {
-    #   "label":       "Stego",
-    #   "confidence":  0.9231,
-    #   "probability": 0.9231,
-    #   "class_id":    1,
-    #   "verdict":     "⚠️ Hidden data detected!"
-    # }
-
-Author: AI Steganography System
 """
 
 import os

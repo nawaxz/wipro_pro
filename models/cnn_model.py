@@ -27,8 +27,6 @@ WHY THIS ARCHITECTURE:
     - BatchNorm stabilizes training with small pixel differences
     - GlobalAveragePooling reduces overfitting vs Flatten
     - Sigmoid output → binary probability (0=cover, 1=stego)
-
-Author: AI Steganography System
 """
 
 import tensorflow as tf
@@ -40,15 +38,7 @@ from config import IMG_SIZE, IMG_CHANNELS, LEARNING_RATE
 
 
 def build_stego_cnn(input_shape: tuple = None) -> tf.keras.Model:
-    """
-    Build and compile the CNN model for stego image detection.
-
-    Args:
-        input_shape: (height, width, channels). Defaults to config values.
-
-    Returns:
-        Compiled Keras model ready for training.
-    """
+    
     if input_shape is None:
         input_shape = (IMG_SIZE[1], IMG_SIZE[0], IMG_CHANNELS)  # (H, W, C)
 
